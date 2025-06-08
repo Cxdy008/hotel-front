@@ -1,12 +1,5 @@
 // Configuração da API
 const API_BASE_URL = 'http://localhost:8080';
-const token = localStorage.getItem('token');
-
-// Headers padrão para requisições autenticadas
-const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-};
 
 // Elementos do DOM
 const sidebarToggle = document.getElementById('toggleSidebar');
@@ -14,59 +7,23 @@ const sidebar = document.querySelector('.admin-sidebar');
 const navItems = document.querySelectorAll('.admin-nav-item');
 const pages = document.querySelectorAll('.admin-page');
 const pageTitle = document.getElementById('adminPageTitle');
-const adminEmail = document.getElementById('adminEmail');
 const adminName = document.getElementById('adminName');
+const adminEmail = document.getElementById('adminEmail');
 const adminLogoutBtn = document.getElementById('adminLogoutBtn');
-
-// Configuração dos gráficos
-const chartConfigs = {
-    systemActivity: {
-        type: 'line',
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    },
-    userDistribution: {
-        type: 'doughnut',
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'right'
-                }
-            }
-        }
-    }
-};
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
-    // Verificar autenticação de admin
-    if (!token || !isAdmin()) {
+    const token = getAuthToken();
+    if (!token) {
         window.location.href = '/pages/login-page.html';
         return;
     }
 
-    // Carregar dados do admin
-    loadAdminData();
+    // Carregar dados do usuário do token
+    loadUserDataFromToken();
 
-    // Inicializar gráficos
-    initializeAdminCharts();
-
-    // Carregar dados iniciais
-    await loadSystemStats();
-    await loadUserStats();
-    await loadActivityLogs();
+    // Inicializar gráficos com dados reais
+    await loadOverviewData();
 });
 
 // Event Listeners
@@ -74,6 +31,26 @@ sidebarToggle.addEventListener('click', () => {
     sidebar.classList.toggle('collapsed');
 });
 
+// Add hover functionality for collapsed sidebar
+sidebar.addEventListener('mouseenter', () => {
+    if (sidebar.classList.contains('collapsed')) {
+        sidebar.style.width = 'var(--admin-sidebar-width)';
+        document.querySelectorAll('.admin-sidebar-header h1, .admin-details, .admin-nav-item span, .admin-logout-btn span').forEach(el => {
+            el.style.display = 'block';
+        });
+    }
+});
+
+sidebar.addEventListener('mouseleave', () => {
+    if (sidebar.classList.contains('collapsed')) {
+        sidebar.style.width = 'var(--admin-sidebar-collapsed)';
+        document.querySelectorAll('.admin-sidebar-header h1, .admin-details, .admin-nav-item span, .admin-logout-btn span').forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+});
+
+// Navegação da Sidebar
 navItems.forEach(item => {
     item.addEventListener('click', () => {
         const targetPage = item.dataset.page;
@@ -82,12 +59,13 @@ navItems.forEach(item => {
         navItems.forEach(navItem => navItem.classList.remove('active'));
         item.classList.add('active');
         
-        // Atualizar página e título
+        // Atualizar página
         pages.forEach(page => {
-            page.classList.remove('active');
             if (page.id === targetPage) {
-                page.classList.add('active');
+                page.style.display = 'block';
                 pageTitle.textContent = item.querySelector('span').textContent;
+            } else {
+                page.style.display = 'none';
             }
         });
 
@@ -98,71 +76,67 @@ navItems.forEach(item => {
 
 // Logout handler
 adminLogoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('adminEmail');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
     window.location.href = '/pages/login-page.html';
 });
 
-// Funções de verificação e carregamento
-function isAdmin() {
-    // Implementar lógica de verificação de admin
-    const userRole = localStorage.getItem('userRole');
-    return userRole === 'ADMIN';
+// Função para obter o token
+function getAuthToken() {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = '/pages/login-page.html';
+        return null;
+    }
+    return token;
 }
 
-function loadAdminData() {
-    const adminEmailFromStorage = localStorage.getItem('adminEmail');
-    const adminNameFromStorage = localStorage.getItem('adminName');
-    
-    if (adminEmailFromStorage) {
-        adminEmail.textContent = adminEmailFromStorage;
-    }
-    if (adminNameFromStorage) {
-        adminName.textContent = adminNameFromStorage;
-    }
+// Headers padrão para requisições autenticadas
+function getAuthHeaders() {
+    const token = getAuthToken();
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
 }
 
-async function loadSystemStats() {
+// Função para carregar dados do usuário do token
+function loadUserDataFromToken() {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/system/stats`, { headers });
-        const data = await response.json();
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error('Token inválido');
+        }
 
-        // Atualizar cards estatísticos
-        updateSystemStats(data);
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) {
+            throw new Error('Token inválido');
+        }
 
-        // Atualizar gráfico de atividade do sistema
-        updateSystemActivityChart(data.activityData);
+        const payload = JSON.parse(atob(tokenParts[1]));
+        
+        // Atualizar o email do token
+        adminEmail.textContent = payload.sub || 'Email não disponível';
+        
+        // Pegar o nome do localStorage
+        const userName = localStorage.getItem('userName');
+        adminName.textContent = userName || 'Administrador';
     } catch (error) {
-        showAdminToast('Erro ao carregar estatísticas do sistema', 'error');
+        console.error('Erro ao carregar dados do usuário:', error);
+        adminEmail.textContent = 'Email não disponível';
+        adminName.textContent = 'Administrador';
     }
 }
 
-async function loadUserStats() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/users/stats`, { headers });
-        const data = await response.json();
-
-        // Atualizar gráfico de distribuição de usuários
-        updateUserDistributionChart(data);
-    } catch (error) {
-        showAdminToast('Erro ao carregar estatísticas de usuários', 'error');
-    }
-}
-
-async function loadActivityLogs() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/activity-logs`, { headers });
-        const logs = await response.json();
-
-        // Atualizar lista de atividades recentes
-        updateActivityList(logs);
-    } catch (error) {
-        showAdminToast('Erro ao carregar logs de atividade', 'error');
-    }
-}
-
-async function loadPageData(page) {
-    switch (page) {
+// Função para carregar dados específicos de cada página
+async function loadPageData(pageName) {
+    switch (pageName) {
+        case 'admin-overview':
+            await loadOverviewData();
+            break;
         case 'user-management':
             await loadUserManagementData();
             break;
@@ -178,122 +152,129 @@ async function loadPageData(page) {
     }
 }
 
-// Funções de atualização de UI
-function updateSystemStats(data) {
-    // Atualizar cards estatísticos com dados do sistema
-    document.querySelector('.admin-stat-card:nth-child(1) .stat-info p').textContent = 
-        data.totalUsers;
-    document.querySelector('.admin-stat-card:nth-child(2) .stat-info p').textContent = 
-        data.securityLevel;
-    document.querySelector('.admin-stat-card:nth-child(3) .stat-info p').textContent = 
-        data.systemStatus;
-    document.querySelector('.admin-stat-card:nth-child(4) .stat-info p').textContent = 
-        data.uptime;
-}
-
-function updateActivityList(logs) {
-    const activityList = document.querySelector('.activity-list');
-    
-    activityList.innerHTML = logs.map(log => `
-        <div class="activity-item">
-            <i class="fas ${getActivityIcon(log.type)}"></i>
-            <div class="activity-details">
-                <p>${log.description}</p>
-                <span>${formatTimestamp(log.timestamp)}</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Inicialização e atualização de gráficos
-function initializeAdminCharts() {
-    // Gráfico de atividade do sistema
-    const systemActivityCtx = document.getElementById('systemActivityChart').getContext('2d');
-    window.systemActivityChart = new Chart(systemActivityCtx, {
-        ...chartConfigs.systemActivity,
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Atividade do Sistema',
-                data: [],
-                borderColor: '#3498db',
-                tension: 0.4
-            }]
-        }
-    });
-
-    // Gráfico de distribuição de usuários
-    const userDistributionCtx = document.getElementById('userDistributionChart').getContext('2d');
-    window.userDistributionChart = new Chart(userDistributionCtx, {
-        ...chartConfigs.userDistribution,
-        data: {
-            labels: ['Administradores', 'Gerentes', 'Recepcionistas', 'Outros'],
-            datasets: [{
-                data: [0, 0, 0, 0],
-                backgroundColor: ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c']
-            }]
-        }
-    });
-}
-
-function updateSystemActivityChart(data) {
-    window.systemActivityChart.data.labels = data.map(item => item.time);
-    window.systemActivityChart.data.datasets[0].data = data.map(item => item.value);
-    window.systemActivityChart.update();
-}
-
-function updateUserDistributionChart(data) {
-    window.userDistributionChart.data.datasets[0].data = [
-        data.admins,
-        data.managers,
-        data.receptionists,
-        data.others
-    ];
-    window.userDistributionChart.update();
-}
-
-// Funções utilitárias
-function getActivityIcon(type) {
-    const icons = {
-        'user': 'fa-user',
-        'security': 'fa-shield-alt',
-        'system': 'fa-server',
-        'error': 'fa-exclamation-triangle',
-        'success': 'fa-check-circle'
-    };
-    return icons[type] || 'fa-info-circle';
-}
-
-function formatTimestamp(timestamp) {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMinutes = Math.floor((now - date) / (1000 * 60));
-
-    if (diffMinutes < 1) return 'Agora mesmo';
-    if (diffMinutes < 60) return `Há ${diffMinutes} minutos`;
-    if (diffMinutes < 1440) return `Há ${Math.floor(diffMinutes / 60)} horas`;
-    return date.toLocaleDateString();
-}
-
-// Toast notifications
-function showAdminToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `admin-toast ${type}`;
-    toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
-    
-    document.getElementById('adminToastContainer').appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
-
 // Funções de carregamento de dados específicos
+async function loadOverviewData() {
+    try {
+        const userEmail = localStorage.getItem('userEmail');
+        if (!userEmail) {
+            throw new Error('Email do usuário não encontrado');
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/guests`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Authenticated-Email': userEmail,
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error('Não autorizado. Por favor, faça login novamente.');
+            }
+            throw new Error('Falha ao carregar dados dos usuários');
+        }
+
+        const users = await response.json();
+        
+        // Contagem de usuários por papel
+        const userCounts = {
+            admin: 0,
+            reception: 0,
+            guest: 0
+        };
+
+        users.forEach(user => {
+            user.authorities.forEach(auth => {
+                if (auth.authority === 'ROLE_ADMIN') userCounts.admin++;
+                if (auth.authority === 'ROLE_RECEPTION') userCounts.reception++;
+                if (auth.authority === 'ROLE_GUEST') userCounts.guest++;
+            });
+        });
+
+        // Se os gráficos ainda não foram inicializados, inicialize-os
+        if (!window.userDistributionChart) {
+            initializeCharts(userCounts);
+        } else {
+            // Caso contrário, apenas atualize os dados
+            window.userDistributionChart.data.datasets[0].data = [
+                userCounts.admin,
+                userCounts.reception,
+                userCounts.guest
+            ];
+            window.userDistributionChart.update();
+        }
+
+        // Atualizar os cards de estatísticas
+        document.querySelector('.admin-stats-grid').innerHTML = `
+            <div class="admin-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total de Usuários</h3>
+                    <p>${users.length}</p>
+                </div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Administradores</h3>
+                    <p>${userCounts.admin}</p>
+                </div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-concierge-bell"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Recepcionistas</h3>
+                    <p>${userCounts.reception}</p>
+                </div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Hóspedes</h3>
+                    <p>${userCounts.guest}</p>
+                </div>
+            </div>
+        `;
+
+        // Atualizar atividades recentes
+        const recentUsers = users.slice(-3).reverse();
+        const activityList = document.querySelector('.activity-list');
+        if (activityList) {
+            activityList.innerHTML = recentUsers.map(user => `
+                <div class="activity-item">
+                    <i class="fas fa-user-plus"></i>
+                    <div class="activity-details">
+                        <p>Novo usuário: ${user.name}</p>
+                        <span>Email: ${user.email}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+    } catch (error) {
+        console.error('Erro ao carregar dados da visão geral:', error);
+        showToast(error.message || 'Erro ao carregar dados da visão geral', 'error');
+        
+        // Se houver erro de autorização, redirecionar para o login
+        if (error.message.includes('Não autorizado')) {
+            localStorage.clear();
+            window.location.href = '/pages/login-page.html';
+        }
+    }
+}
+
 async function loadUserManagementData() {
-    // Implementar carregamento de dados de gestão de usuários
+    // Implementar carregamento de dados de usuários
 }
 
 async function loadSystemSettings() {
@@ -306,4 +287,123 @@ async function loadSecurityData() {
 
 async function loadSystemLogs() {
     // Implementar carregamento de logs do sistema
+}
+
+// Funções para os gráficos
+function initializeCharts(userCounts) {
+    // Gráfico de Atividade do Sistema
+    const systemActivityCtx = document.getElementById('systemActivityChart').getContext('2d');
+    window.systemActivityChart = new Chart(systemActivityCtx, {
+        type: 'line',
+        data: {
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+            datasets: [{
+                label: 'Atividade do Sistema',
+                data: [65, 59, 80, 81, 56, 55],
+                borderColor: '#7c3aed',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(124, 58, 237, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 5
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Distribuição de Usuários
+    const userDistributionCtx = document.getElementById('userDistributionChart').getContext('2d');
+    window.userDistributionChart = new Chart(userDistributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Administradores', 'Recepcionistas', 'Hóspedes'],
+            datasets: [{
+                data: [
+                    userCounts.admin,
+                    userCounts.reception,
+                    userCounts.guest
+                ],
+                backgroundColor: [
+                    '#7c3aed',
+                    '#6d28d9',
+                    '#8b5cf6'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        boxWidth: 12
+                    }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+}
+
+function updateSystemActivityChart() {
+    // Atualizar dados do gráfico de atividade
+    if (window.systemActivityChart) {
+        // Aqui você pode adicionar dados reais
+        window.systemActivityChart.update();
+    }
+}
+
+function updateUserDistributionChart() {
+    // Atualizar dados do gráfico de distribuição
+    if (window.userDistributionChart) {
+        // Aqui você pode adicionar dados reais
+        window.userDistributionChart.update();
+    }
+}
+
+// Atualizar gráficos quando a janela for redimensionada
+window.addEventListener('resize', () => {
+    if (window.systemActivityChart) {
+        window.systemActivityChart.resize();
+    }
+    if (window.userDistributionChart) {
+        window.userDistributionChart.resize();
+    }
+});
+
+// Toast notifications
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `admin-toast ${type}`;
+    toast.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.getElementById('adminToastContainer').appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
 } 

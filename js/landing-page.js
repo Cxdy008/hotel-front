@@ -75,9 +75,14 @@ function updateAuthButtons() {
         // Navegação para o dashboard
         dashboardLink?.addEventListener('click', (e) => {
             e.preventDefault();
-            const dashboardRoute = `${userRole.toLowerCase()}-dashboard`;
-            if (window.router) {
-                window.router.navigate(dashboardRoute);
+            const role = localStorage.getItem('userRole');
+            if (role) {
+                const dashboardUrls = {
+                    'ADMIN': '/pages/dashboard-admin.html',
+                    'RECEPTIONIST': '/pages/dashboard-reception.html',
+                    'GUEST': '/pages/dashboard-guest.html'
+                };
+                window.location.href = dashboardUrls[role] || '/pages/dashboard-guest.html';
             }
         });
 
@@ -89,7 +94,7 @@ function updateAuthButtons() {
             localStorage.removeItem('userRole');
             localStorage.removeItem('userName');
             localStorage.removeItem('authToken');
-            localStorage.removeItem('rememberedEmail');
+            localStorage.removeItem('userEmail');
             
             // Recarrega a página
             window.location.reload();
@@ -99,8 +104,14 @@ function updateAuthButtons() {
         reserveButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (window.router) {
-                    window.router.navigate(`${userRole.toLowerCase()}-dashboard`);
+                const role = localStorage.getItem('userRole');
+                if (role) {
+                    const dashboardUrls = {
+                        'ADMIN': '/pages/dashboard-admin.html',
+                        'RECEPTIONIST': '/pages/dashboard-reception.html',
+                        'GUEST': '/pages/dashboard-guest.html'
+                    };
+                    window.location.href = dashboardUrls[role] || '/pages/dashboard-guest.html';
                 }
             });
         });

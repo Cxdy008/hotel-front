@@ -348,6 +348,10 @@ body {
     border-left-color: var(--guest-danger);
 }
 
+.reservation-card.pending {
+    border-left-color: var(--guest-warning);
+}
+
 .reservation-header {
     display: flex;
     justify-content: space-between;
@@ -1165,4 +1169,362 @@ body {
     border-color: var(--guest-primary);
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
     background-color: var(--guest-card-bg);
+}
+
+/* Modal de Atualização de Reserva */
+.update-reservation-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.update-reservation-modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--guest-card-bg);
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px var(--guest-shadow);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--guest-border);
+}
+
+.modal-header h3 {
+    color: var(--guest-text);
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: var(--guest-text-light);
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.close-modal:hover {
+    color: var(--guest-danger);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.cancel-modal-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--guest-text-light);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.cancel-modal-btn:hover {
+    background-color: var(--guest-text);
+}
+
+.update-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--guest-primary);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.update-btn:hover {
+    background-color: var(--guest-secondary);
+}
+
+/* Botão de atualizar na lista de reservas */
+.update-btn-list {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--guest-primary);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 1rem;
+}
+
+.update-btn-list:hover {
+    background-color: var(--guest-secondary);
+    transform: translateY(-1px);
+}
+
+.update-btn-list i {
+    font-size: 1rem;
+}
+
+/* Estilos adicionais para a modal de atualização */
+.available-rooms-modal {
+    margin-top: 1.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+    background-color: var(--guest-background);
+    border-radius: 0.5rem;
+    display: none;
+}
+
+.available-rooms-modal.active {
+    display: block;
+}
+
+.room-card-modal {
+    background-color: var(--guest-card-bg);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.room-card-modal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px var(--guest-shadow);
+}
+
+.room-card-modal.selected {
+    border-color: var(--guest-primary);
+    background-color: rgba(124, 58, 237, 0.1);
+}
+
+.room-card-modal .room-info {
+    flex: 1;
+}
+
+.room-card-modal .room-select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--guest-border);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.room-card-modal.selected .room-select {
+    background-color: var(--guest-primary);
+    border-color: var(--guest-primary);
+    color: white;
+}
+
+.search-rooms-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--guest-accent);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-rooms-btn:hover {
+    background-color: var(--guest-secondary);
+}
+
+.search-rooms-btn i {
+    font-size: 1rem;
+}
+
+.modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Ajuste no layout dos botões da modal */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.modal-actions button {
+    flex: 0 1 auto;
+}
+
+@media (max-width: 480px) {
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions button {
+        width: 100%;
+    }
+}
+
+/* Estilos do Perfil */
+.profile-data {
+    background-color: var(--guest-card-bg);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 4px var(--guest-shadow);
+}
+
+.data-row {
+    display: flex;
+    padding: 1rem;
+    border-bottom: 1px solid var(--guest-border);
+}
+
+.data-row:last-child {
+    border-bottom: none;
+}
+
+.data-label {
+    font-weight: 500;
+    color: var(--guest-text);
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.data-value {
+    color: var(--guest-text-light);
+    flex: 1;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.update-profile-btn,
+.update-password-btn,
+.delete-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.update-profile-btn {
+    background-color: var(--guest-primary);
+    color: white;
+}
+
+.update-profile-btn:hover {
+    background-color: var(--guest-secondary);
+}
+
+.update-password-btn {
+    background-color: var(--guest-accent);
+    color: white;
+}
+
+.update-password-btn:hover {
+    background-color: var(--guest-secondary);
+}
+
+.delete-profile-btn {
+    background-color: var(--guest-danger);
+    color: white;
+}
+
+.delete-profile-btn:hover {
+    background-color: #b91c1c;
+}
+
+/* Modal de Perfil */
+.profile-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-modal.active {
+    display: flex;
+}
+
+@media (max-width: 768px) {
+    .profile-actions {
+        flex-direction: column;
+    }
+
+    .profile-actions button {
+        width: 100%;
+    }
+
+    .data-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .data-label {
+        width: 100%;
+    }
 } 

@@ -53,6 +53,34 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.remove(), 3000);
 }
 
+// Função para decodificar o token JWT
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error('Erro ao decodificar token:', e);
+        return null;
+    }
+}
+
+// Função para obter o papel do usuário do token
+function getUserRole(token) {
+    const decoded = parseJwt(token);
+    if (!decoded || !decoded.roles || !decoded.roles.length) {
+        return null;
+    }
+    
+    // Pegar o primeiro papel da lista de roles
+    const role = decoded.roles[0];
+    return role.replace('ROLE_', '');
+}
+
 // Login form submission
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -95,6 +123,24 @@ loginForm.addEventListener('submit', async (e) => {
 
         // Salvar o token no localStorage
         localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('isAuthenticated', 'true');
+
+        // Obter e salvar o papel do usuário
+        const role = getUserRole(data.token);
+        if (role) {
+            localStorage.setItem('userRole', role);
+            const dashboardUrls = {
+                'ADMIN': '/pages/dashboard-admin.html',
+                'RECEPTIONIST': '/pages/dashboard-reception.html',
+                'GUEST': '/pages/dashboard-guest.html'
+            };
+
+            const dashboardUrl = dashboardUrls[role] || '/pages/dashboard-guest.html';
+            window.location.href = dashboardUrl;
+        } else {
+            throw new Error('Papel do usuário não encontrado');
+        }
 
         // Salvar o nome do usuário no localStorage
         if (data.name) {
@@ -107,9 +153,6 @@ loginForm.addEventListener('submit', async (e) => {
         } else {
             localStorage.removeItem('rememberedEmail');
         }
-
-        // Redirecionar para o dashboard
-        window.location.href = '/pages/dashboard-guest.html';
 
         showToast('Login realizado com sucesso!');
 

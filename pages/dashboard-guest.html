@@ -86,9 +86,9 @@
                                 <label>Status</label>
                                 <select id="reservationStatusFilter">
                                     <option value="all">Todas</option>
-                                    <option value="upcoming">Próximas</option>
-                                    <option value="past">Passadas</option>
-                                    <option value="cancelled">Canceladas</option>
+                                    <option value="ACTIVE">Activas</option>
+                                    <option value="CANCELLED">Canceladas</option>
+                                    <option value="COMPLETED">Completas</option>
                                 </select>
                             </div>
                             <div class="filter-group">
@@ -155,61 +155,156 @@
                                 <p>Mantenha seus dados sempre atualizados</p>
                             </div>
                         </div>
-                        <form id="profileForm" class="profile-form">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Nome Completo</label>
-                                    <input type="text" id="fullName" name="fullName" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Documento</label>
-                                    <input type="text" id="document" name="document" required>
-                                </div>
+                        <div class="profile-data">
+                            <div class="data-row">
+                                <span class="data-label">Nome:</span>
+                                <span id="profileName" class="data-value"></span>
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Email</label>
-                                    <input type="email" id="email" name="email" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Telefone</label>
-                                    <input type="tel" id="phone" name="phone" required>
-                                </div>
+                            <div class="data-row">
+                                <span class="data-label">Email:</span>
+                                <span id="profileEmail" class="data-value"></span>
                             </div>
-                            <div class="form-group">
-                                <label>Endereço</label>
-                                <input type="text" id="address" name="address">
+                            <div class="data-row">
+                                <span class="data-label">Telefone:</span>
+                                <span id="profilePhone" class="data-value"></span>
                             </div>
-                            <div class="form-actions">
-                                <button type="submit" class="save-btn">Salvar Alterações</button>
+                            <div class="data-row">
+                                <span class="data-label">Documento:</span>
+                                <span id="profileDocument" class="data-value"></span>
                             </div>
-                        </form>
-                        <div class="password-section">
-                            <h3>Alterar Senha</h3>
-                            <form id="passwordForm" class="password-form">
-                                <div class="form-group">
-                                    <label>Senha Atual</label>
-                                    <input type="password" name="currentPassword" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Nova Senha</label>
-                                    <input type="password" name="newPassword" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Confirmar Nova Senha</label>
-                                    <input type="password" name="confirmPassword" required>
-                                </div>
-                                <button type="submit" class="change-password-btn">Alterar Senha</button>
-                            </form>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="update-profile-btn" onclick="openUpdateProfileModal()">
+                                <i class="fas fa-edit"></i>
+                                Atualizar Perfil
+                            </button>
+                            <button class="update-password-btn" onclick="openUpdatePasswordModal()">
+                                <i class="fas fa-key"></i>
+                                Atualizar Senha
+                            </button>
+                            <button class="delete-profile-btn" onclick="confirmDeleteProfile()">
+                                <i class="fas fa-trash"></i>
+                                Apagar Perfil
+                            </button>
                         </div>
                     </div>
                 </section>
+
+                <!-- Modal de Atualização de Perfil -->
+                <div class="profile-modal" id="updateProfileModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Atualizar Perfil</h3>
+                            <button class="close-modal" onclick="closeUpdateProfileModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="updateProfileForm">
+                                <input type="hidden" id="profileId">
+                                <div class="form-group">
+                                    <label for="updateName">Nome</label>
+                                    <input type="text" id="updateName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="updatePhone">Telefone</label>
+                                    <input type="tel" id="updatePhone" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateDocument">Documento</label>
+                                    <input type="text" id="updateDocument" required>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="cancel-modal-btn" onclick="closeUpdateProfileModal()">Cancelar</button>
+                                    <button type="submit" class="update-btn">Atualizar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal de Atualização de Senha -->
+                <div class="profile-modal" id="updatePasswordModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Atualizar Senha</h3>
+                            <button class="close-modal" onclick="closeUpdatePasswordModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="updatePasswordForm">
+                                <div class="form-group">
+                                    <label for="currentPassword">Senha Atual</label>
+                                    <input type="password" id="currentPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword">Nova Senha</label>
+                                    <input type="password" id="newPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmPassword">Confirmar Nova Senha</label>
+                                    <input type="password" id="confirmPassword" required>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="button" class="cancel-modal-btn" onclick="closeUpdatePasswordModal()">Cancelar</button>
+                                    <button type="submit" class="update-btn">Atualizar Senha</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
     <!-- Toast Notifications -->
     <div class="guest-toast-container" id="guestToastContainer"></div>
+
+    <!-- Modal de Atualização de Reserva -->
+    <div class="update-reservation-modal" id="updateReservationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Atualizar Reserva</h3>
+                <button class="close-modal" onclick="closeUpdateModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="updateReservationForm">
+                    <input type="hidden" id="updateReservationId">
+                    <div class="form-group">
+                        <label for="updateCheckIn">Check-in</label>
+                        <input type="date" id="updateCheckIn" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateCheckOut">Check-out</label>
+                        <input type="date" id="updateCheckOut" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateRoomType">Tipo de Quarto</label>
+                        <select id="updateRoomType" required>
+                            <option value="all">TODOS DISPONÍVEIS</option>
+                            <option value="STANDARD">STANDARD</option>
+                            <option value="LUXO">LUXO</option>
+                            <option value="SUITE">SUITE</option>
+                        </select>
+                    </div>
+                    <div class="available-rooms-modal">
+                        <!-- Lista de quartos disponíveis será preenchida via JavaScript -->
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="search-rooms-btn" onclick="searchAvailableRoomsForUpdate()">
+                            <i class="fas fa-search"></i>
+                            Buscar Quartos
+                        </button>
+                        <button type="button" class="cancel-modal-btn" onclick="closeUpdateModal()">Cancelar</button>
+                        <button type="submit" class="update-btn" disabled>Atualizar Reserva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- JavaScript -->
     <script src="../js/dashboard-guest.js"></script>

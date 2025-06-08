@@ -140,11 +140,15 @@
                     <div class="admin-charts-container">
                         <div class="admin-chart-card">
                             <h3>Atividade do Sistema</h3>
-                            <canvas id="systemActivityChart"></canvas>
+                            <div class="chart-container">
+                                <canvas id="systemActivityChart"></canvas>
+                            </div>
                         </div>
                         <div class="admin-chart-card">
                             <h3>Distribuição de Usuários</h3>
-                            <canvas id="userDistributionChart"></canvas>
+                            <div class="chart-container">
+                                <canvas id="userDistributionChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -176,7 +180,151 @@
                     </div>
                 </section>
 
-                <!-- Outras seções serão carregadas dinamicamente -->
+                <!-- Gestão de Usuários -->
+                <section id="user-management" class="admin-page">
+                    <div class="admin-section-header">
+                        <h3>Gestão de Usuários</h3>
+                        <button class="add-user-btn">
+                            <i class="fas fa-user-plus"></i>
+                            Adicionar Usuário
+                        </button>
+                    </div>
+                    <div class="users-table-container">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Papel</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Será preenchido via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Configurações do Sistema -->
+                <section id="system-settings" class="admin-page">
+                    <div class="admin-section-header">
+                        <h3>Configurações do Sistema</h3>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="settings-card">
+                            <h4>Configurações Gerais</h4>
+                            <form id="generalSettingsForm">
+                                <div class="form-group">
+                                    <label>Nome do Hotel</label>
+                                    <input type="text" id="hotelName">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email de Contato</label>
+                                    <input type="email" id="contactEmail">
+                                </div>
+                                <div class="form-group">
+                                    <label>Telefone</label>
+                                    <input type="tel" id="contactPhone">
+                                </div>
+                                <button type="submit" class="save-settings-btn">Salvar Alterações</button>
+                            </form>
+                        </div>
+                        <div class="settings-card">
+                            <h4>Configurações de Email</h4>
+                            <form id="emailSettingsForm">
+                                <div class="form-group">
+                                    <label>Servidor SMTP</label>
+                                    <input type="text" id="smtpServer">
+                                </div>
+                                <div class="form-group">
+                                    <label>Porta</label>
+                                    <input type="number" id="smtpPort">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="smtpEmail">
+                                </div>
+                                <button type="submit" class="save-settings-btn">Salvar Alterações</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Segurança -->
+                <section id="security" class="admin-page">
+                    <div class="admin-section-header">
+                        <h3>Segurança</h3>
+                    </div>
+                    <div class="security-grid">
+                        <div class="security-card">
+                            <h4>Política de Senhas</h4>
+                            <form id="passwordPolicyForm">
+                                <div class="form-group">
+                                    <label>Comprimento Mínimo</label>
+                                    <input type="number" id="minPasswordLength">
+                                </div>
+                                <div class="form-group">
+                                    <label>Exigir Caracteres Especiais</label>
+                                    <input type="checkbox" id="requireSpecialChars">
+                                </div>
+                                <div class="form-group">
+                                    <label>Exigir Números</label>
+                                    <input type="checkbox" id="requireNumbers">
+                                </div>
+                                <button type="submit" class="save-settings-btn">Salvar Alterações</button>
+                            </form>
+                        </div>
+                        <div class="security-card">
+                            <h4>Sessão</h4>
+                            <form id="sessionSettingsForm">
+                                <div class="form-group">
+                                    <label>Tempo de Expiração (minutos)</label>
+                                    <input type="number" id="sessionTimeout">
+                                </div>
+                                <div class="form-group">
+                                    <label>Máximo de Tentativas de Login</label>
+                                    <input type="number" id="maxLoginAttempts">
+                                </div>
+                                <button type="submit" class="save-settings-btn">Salvar Alterações</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Logs do Sistema -->
+                <section id="logs" class="admin-page">
+                    <div class="admin-section-header">
+                        <h3>Logs do Sistema</h3>
+                        <div class="logs-filters">
+                            <select id="logTypeFilter">
+                                <option value="all">Todos os Tipos</option>
+                                <option value="error">Erros</option>
+                                <option value="warning">Avisos</option>
+                                <option value="info">Informações</option>
+                            </select>
+                            <input type="date" id="logDateFilter">
+                        </div>
+                    </div>
+                    <div class="logs-table-container">
+                        <table class="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Tipo</th>
+                                    <th>Usuário</th>
+                                    <th>Mensagem</th>
+                                    <th>Detalhes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                <!-- Será preenchido via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>

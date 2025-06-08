@@ -101,6 +101,10 @@ class Auth {
         this.token = null;
         this.decodedToken = null;
         localStorage.removeItem('authToken');
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
     }
 
     logout() {

@@ -43,6 +43,26 @@ let selectedRoomNumber = null;
 const submitContainer = document.querySelector('.reservation-submit-container');
 const submitButton = document.querySelector('.submit-reservation-btn');
 
+// Elementos da modal
+const updateModal = document.getElementById('updateReservationModal');
+const updateForm = document.getElementById('updateReservationForm');
+const updateReservationId = document.getElementById('updateReservationId');
+const updateCheckIn = document.getElementById('updateCheckIn');
+const updateCheckOut = document.getElementById('updateCheckOut');
+
+// Elementos adicionais da modal
+const updateRoomType = document.getElementById('updateRoomType');
+const availableRoomsModal = document.querySelector('.available-rooms-modal');
+let selectedRoomNumberForUpdate = null;
+let currentRoomNumber = null;
+
+// Elementos do perfil
+const updateProfileModal = document.getElementById('updateProfileModal');
+const updatePasswordModal = document.getElementById('updatePasswordModal');
+const updateProfileForm = document.getElementById('updateProfileForm');
+const updatePasswordForm = document.getElementById('updatePasswordForm');
+let userId = null;
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     const token = getAuthToken();
@@ -150,7 +170,12 @@ guestLogoutBtn.addEventListener('click', () => {
 // Funções de carregamento de dados
 async function loadReservations() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/reserves/my-reserves`, {
+        const status = reservationStatusFilter.value;
+        const endpoint = status === 'all' 
+            ? `${API_BASE_URL}/api/reserves/my-reserves`
+            : `${API_BASE_URL}/api/reserves/status/${status}`;
+
+        const response = await fetch(endpoint, {
             headers: getAuthHeaders()
         });
 
@@ -180,7 +205,15 @@ function updateReservationsList(reservations) {
         return;
     }
 
-    reservationsList.innerHTML = reservations.map(reservation => `
+    // Ordenar reservas baseado no filtro selecionado
+    const sortOrder = reservationSortFilter.value;
+    const sortedReservations = [...reservations].sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return sortOrder === 'date-desc' ? dateB - dateA : dateA - dateB;
+    });
+
+    reservationsList.innerHTML = sortedReservations.map(reservation => `
         <div class="reservation-card ${reservation.status.toLowerCase()}">
             <div class="reservation-header">
                 <div class="reservation-id">
@@ -223,6 +256,10 @@ function updateReservationsList(reservations) {
 
             ${reservation.status === 'ACTIVE' ? `
                 <div class="reservation-actions">
+                    <button class="update-btn-list" onclick="openUpdateModal(${reservation.id}, '${reservation.checkin}', '${reservation.checkout}', ${reservation.room.number}, '${reservation.room.type}')">
+                        <i class="fas fa-edit"></i>
+                        Atualizar
+                    </button>
                     <button class="cancel-btn" onclick="cancelReservation(${reservation.id})">
                         <i class="fas fa-times"></i>
                         Cancelar Reserva
@@ -538,7 +575,7 @@ async function cancelReservation(reservationId) {
 
         if (!response.ok) throw new Error('Erro ao cancelar reserva');
 
-        showToast('Reserva cancelada com sucesso!');
+        showToast('Reserva cancelada com sucesso!', 'success');
         await loadReservations();
     } catch (error) {
         showToast(error.message, 'error');
@@ -681,19 +718,31 @@ function loadPageData(pageName) {
 // Função para carregar dados do perfil do usuário
 async function loadUserProfile() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/guests/profile`, {
+        const email = localStorage.getItem('userEmail');
+        if (!email) {
+            throw new Error('Email não encontrado');
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/guests/email/${email}`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok) {
-            const profileData = await response.json();
-            // Preencher formulário com dados do perfil
-            document.getElementById('fullName').value = profileData.name || '';
-            document.getElementById('email').value = profileData.email || '';
-            document.getElementById('document').value = profileData.document || '';
-            document.getElementById('phone').value = profileData.phone || '';
-            document.getElementById('address').value = profileData.address || '';
-        }
+        if (!response.ok) throw new Error('Erro ao carregar perfil');
+
+        const profileData = await response.json();
+        userId = profileData.id;
+
+        // Atualizar os dados na tela
+        document.getElementById('profileName').textContent = profileData.name;
+        document.getElementById('profileEmail').textContent = profileData.email;
+        document.getElementById('profilePhone').textContent = profileData.phone;
+        document.getElementById('profileDocument').textContent = profileData.document;
+
+        // Preencher o formulário de atualização
+        document.getElementById('profileId').value = profileData.id;
+        document.getElementById('updateName').value = profileData.name;
+        document.getElementById('updatePhone').value = profileData.phone;
+        document.getElementById('updateDocument').value = profileData.document;
     } catch (error) {
         console.error('Erro ao carregar perfil:', error);
         showToast('Erro ao carregar dados do perfil', 'error');
@@ -714,4 +763,288 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.remove();
     }, 3000);
+}
+
+// Função para abrir a modal de atualização
+function openUpdateModal(reservationId, currentCheckIn, currentCheckOut, roomNumber, roomType) {
+    updateReservationId.value = reservationId;
+    updateCheckIn.value = formatDateForInput(currentCheckIn);
+    updateCheckOut.value = formatDateForInput(currentCheckOut);
+    currentRoomNumber = roomNumber;
+    updateRoomType.value = roomType;
+    updateModal.classList.add('active');
+    setupUpdateDateConstraints();
+    
+    // Resetar seleção de quarto
+    selectedRoomNumberForUpdate = null;
+    availableRoomsModal.classList.remove('active');
+    document.querySelector('.update-btn').disabled = true;
+}
+
+// Função para fechar a modal
+function closeUpdateModal() {
+    updateModal.classList.remove('active');
+    updateForm.reset();
+}
+
+// Configurar restrições de data para atualização
+function setupUpdateDateConstraints() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayStr = today.toISOString().split('T')[0];
+    updateCheckIn.min = todayStr;
+
+    updateCheckIn.addEventListener('change', () => {
+        const selectedCheckIn = new Date(updateCheckIn.value);
+        const minCheckOut = new Date(selectedCheckIn);
+        minCheckOut.setDate(minCheckOut.getDate() + 1);
+        updateCheckOut.min = minCheckOut.toISOString().split('T')[0];
+
+        if (updateCheckOut.value && new Date(updateCheckOut.value) <= selectedCheckIn) {
+            updateCheckOut.value = '';
+            showToast('A data de check-out deve ser posterior à data de check-in', 'error');
+        }
+    });
+
+    updateCheckOut.min = tomorrow.toISOString().split('T')[0];
+}
+
+// Função para formatar data para input
+function formatDateForInput(dateStr) {
+    return new Date(dateStr).toISOString().split('T')[0];
+}
+
+// Event listener para o formulário de atualização
+updateForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await updateReservation();
+});
+
+// Função para atualizar a reserva
+async function updateReservation() {
+    const reservationId = updateReservationId.value;
+    const checkIn = updateCheckIn.value;
+    const checkOut = updateCheckOut.value;
+
+    if (!checkIn || !checkOut) {
+        showToast('Por favor, preencha todas as datas', 'error');
+        return;
+    }
+
+    if (new Date(checkOut) <= new Date(checkIn)) {
+        showToast('A data de check-out deve ser posterior à data de check-in', 'error');
+        return;
+    }
+
+    // Se o quarto foi alterado, verificar se foi selecionado um novo
+    if (selectedRoomNumberForUpdate !== currentRoomNumber && !selectedRoomNumberForUpdate) {
+        showToast('Por favor, selecione um quarto', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/reserves/${reservationId}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                checkIn: checkIn,
+                checkOut: checkOut,
+                roomNumber: selectedRoomNumberForUpdate || currentRoomNumber
+            })
+        });
+
+        if (!response.ok) throw new Error('Erro ao atualizar reserva');
+
+        showToast('Reserva atualizada com sucesso!', 'success');
+        closeUpdateModal();
+        await loadReservations();
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+// Função para buscar quartos disponíveis para atualização
+async function searchAvailableRoomsForUpdate() {
+    if (!updateCheckIn.value || !updateCheckOut.value) {
+        showToast('Por favor, selecione as datas de check-in e check-out', 'error');
+        return;
+    }
+
+    if (new Date(updateCheckOut.value) <= new Date(updateCheckIn.value)) {
+        showToast('A data de check-out deve ser posterior à data de check-in', 'error');
+        return;
+    }
+
+    try {
+        const roomType = updateRoomType.value;
+        const endpoint = roomType === 'all' 
+            ? `${API_BASE_URL}/api/rooms/available`
+            : `${API_BASE_URL}/api/rooms/type/${roomType}`;
+
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Erro ao buscar quartos');
+
+        const rooms = await response.json();
+        updateAvailableRoomsModalList(rooms);
+        availableRoomsModal.classList.add('active');
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+// Função para atualizar a lista de quartos na modal
+function updateAvailableRoomsModalList(rooms) {
+    if (!Array.isArray(rooms) || rooms.length === 0) {
+        availableRoomsModal.innerHTML = `
+            <div class="no-rooms-message">
+                <i class="fas fa-info-circle"></i>
+                <p>Nenhum quarto disponível para as datas selecionadas.</p>
+            </div>
+        `;
+        return;
+    }
+
+    availableRoomsModal.innerHTML = rooms.map(room => `
+        <div class="room-card-modal ${room.roomNumber === currentRoomNumber ? 'current' : ''}" 
+             data-room-number="${room.roomNumber}" 
+             onclick="selectRoomForUpdate(${room.roomNumber})">
+            <div class="room-info">
+                <h4>Quarto ${room.roomNumber}</h4>
+                <div class="room-type">
+                    <i class="fas fa-bed"></i>
+                    <span>${room.roomType}</span>
+                </div>
+            </div>
+            <div class="room-select">
+                <i class="fas fa-check"></i>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Função para selecionar um quarto para atualização
+function selectRoomForUpdate(roomNumber) {
+    selectedRoomNumberForUpdate = roomNumber;
+    
+    // Atualizar visual dos quartos
+    document.querySelectorAll('.room-card-modal').forEach(card => {
+        card.classList.remove('selected');
+        if (card.dataset.roomNumber === roomNumber.toString()) {
+            card.classList.add('selected');
+        }
+    });
+
+    // Habilitar botão de atualização
+    document.querySelector('.update-btn').disabled = false;
+}
+
+// Funções da modal de atualização de perfil
+function openUpdateProfileModal() {
+    updateProfileModal.classList.add('active');
+}
+
+function closeUpdateProfileModal() {
+    updateProfileModal.classList.remove('active');
+}
+
+// Funções da modal de atualização de senha
+function openUpdatePasswordModal() {
+    updatePasswordModal.classList.add('active');
+}
+
+function closeUpdatePasswordModal() {
+    updatePasswordModal.classList.remove('active');
+    updatePasswordForm.reset();
+}
+
+// Atualizar perfil
+updateProfileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/guests/${userId}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                name: document.getElementById('updateName').value,
+                phone: document.getElementById('updatePhone').value,
+                document: document.getElementById('updateDocument').value
+            })
+        });
+
+        if (!response.ok) throw new Error('Erro ao atualizar perfil');
+
+        showToast('Perfil atualizado com sucesso!', 'success');
+        closeUpdateProfileModal();
+        await loadUserProfile();
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+});
+
+// Atualizar senha
+updatePasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (newPassword !== confirmPassword) {
+        showToast('As senhas não coincidem', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/guests/password-update/${userId}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                currentPassword: document.getElementById('currentPassword').value,
+                newPassword: newPassword
+            })
+        });
+
+        if (!response.ok) throw new Error('Erro ao atualizar senha');
+
+        showToast('Senha atualizada com sucesso!', 'success');
+        closeUpdatePasswordModal();
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+});
+
+// Função para confirmar e apagar perfil
+function confirmDeleteProfile() {
+    if (!confirm('Tem certeza que deseja apagar seu perfil? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+
+    deleteProfile();
+}
+
+async function deleteProfile() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/guests/${userId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Erro ao apagar perfil');
+
+        showToast('Perfil apagado com sucesso!', 'success');
+        
+        // Fazer logout após apagar o perfil
+        setTimeout(() => {
+            localStorage.clear();
+            window.location.href = '/pages/login-page.html';
+        }, 2000);
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
 } 
