@@ -150,11 +150,19 @@ guestLogoutBtn.addEventListener('click', () => {
 // Funções de carregamento de dados
 async function loadReservations() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/reserves/my-reserves`, { headers: getAuthHeaders() });
+        const response = await fetch(`${API_BASE_URL}/api/reserves/my-reserves`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao carregar reservas');
+        }
+
         const reservations = await response.json();
         updateReservationsList(reservations);
     } catch (error) {
-        showToast('Erro ao carregar reservas', 'error');
+        console.error('Erro ao carregar reservas:', error);
+        showToast('Erro ao carregar suas reservas', 'error');
     }
 }
 
@@ -162,43 +170,92 @@ function updateReservationsList(reservations) {
     const reservationsList = document.querySelector('.reservations-list');
     if (!reservationsList) return;
 
+    if (!Array.isArray(reservations) || reservations.length === 0) {
+        reservationsList.innerHTML = `
+            <div class="no-reservations-message">
+                <i class="fas fa-calendar-times"></i>
+                <p>Você ainda não possui reservas.</p>
+            </div>
+        `;
+        return;
+    }
+
     reservationsList.innerHTML = reservations.map(reservation => `
         <div class="reservation-card ${reservation.status.toLowerCase()}">
             <div class="reservation-header">
-                <h4>Reserva #${reservation.id}</h4>
-                <span class="status-badge">${getStatusText(reservation.status)}</span>
-            </div>
-            <div class="reservation-details">
-                <div class="detail-row">
-                    <i class="fas fa-bed"></i>
-                    <div>
-                        <h5>Quarto ${reservation.roomNumber}</h5>
-                        <p>${reservation.roomType}</p>
-                    </div>
+                <div class="reservation-id">
+                    <h4>Reserva #${reservation.id}</h4>
+                    <span class="status-badge ${reservation.status.toLowerCase()}">${getReservationStatus(reservation.status)}</span>
                 </div>
-                <div class="detail-row">
-                    <i class="fas fa-calendar"></i>
-                    <div>
-                        <p>Check-in: ${formatDate(reservation.checkIn)}</p>
-                        <p>Check-out: ${formatDate(reservation.checkOut)}</p>
-                    </div>
-                </div>
-                <div class="detail-row">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <div>
-                        <p>Total: AOA ${reservation.totalPrice.toLocaleString()}</p>
-                    </div>
+                <div class="reservation-date">
+                    <small>Criada em: ${formatDateTime(reservation.createdAt)}</small>
                 </div>
             </div>
-            ${reservation.status === 'PENDING' ? `
+            
+            <div class="reservation-content">
+                <div class="room-details">
+                    <div class="detail-row">
+                        <i class="fas fa-door-closed"></i>
+                        <div>
+                            <h5>Quarto ${reservation.room.number}</h5>
+                            <p>Tipo: ${reservation.room.type}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="date-details">
+                    <div class="detail-row">
+                        <i class="fas fa-calendar-check"></i>
+                        <div>
+                            <h5>Check-in</h5>
+                            <p>${formatDate(reservation.checkin)}</p>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fas fa-calendar-times"></i>
+                        <div>
+                            <h5>Check-out</h5>
+                            <p>${formatDate(reservation.checkout)}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            ${reservation.status === 'ACTIVE' ? `
                 <div class="reservation-actions">
                     <button class="cancel-btn" onclick="cancelReservation(${reservation.id})">
+                        <i class="fas fa-times"></i>
                         Cancelar Reserva
                     </button>
                 </div>
             ` : ''}
         </div>
     `).join('');
+}
+
+function getReservationStatus(status) {
+    const statusMap = {
+        'ACTIVE': 'Ativa',
+        'COMPLETED': 'Concluída',
+        'CANCELLED': 'Cancelada',
+        'PENDING': 'Pendente'
+    };
+    return statusMap[status] || status;
+}
+
+function formatDateTime(dateTimeStr) {
+    const date = new Date(dateTimeStr);
+    return date.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString('pt-BR');
 }
 
 // Função para verificar se todos os campos necessários estão preenchidos
@@ -560,10 +617,6 @@ function getFeatureIcon(feature) {
         'Cofre': 'fa-lock'
     };
     return iconMap[feature] || 'fa-check';
-}
-
-function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('pt-BR');
 }
 
 // Função para carregar dados do usuário do token
