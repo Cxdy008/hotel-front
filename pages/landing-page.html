@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotelManager - Seu Hotel de Luxo em Angola</title>
+    <link rel="stylesheet" href="../css/landing-page.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <h1>HotelManager</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Início</a></li>
+                <li><a href="#rooms">Quartos</a></li>
+                <li><a href="#services">Serviços</a></li>
+                <li><a href="#about">Sobre</a></li>
+                <li><a href="#contact">Reservas</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button class="btn btn-login" data-route="login">Entrar</button>
+                <button class="btn btn-register" data-route="signup">Registrar Agora</button>
+            </div>
+        </nav>
+    </header>
+        
+    <main>
+        <section id="home" class="hero-section">
+            <div class="hero-content">
+                <h1>Bem-vindo ao HotelManager</h1>
+                <p>Experimente o luxo e conforto no coração de Angola</p>
+                <button class="btn btn-primary" data-route="signup">Reserve Sua Estadia</button>
+            </div>
+        </section>
+
+        <section id="rooms" class="rooms-section">
+            <h2>Nossos Quartos</h2>
+            <div class="rooms-grid">
+                <div class="room-card">
+                    <i class="fas fa-bed"></i>
+                    <h3>Quarto Standard</h3>
+                    <p>Conforto e elegância para sua estadia</p>
+                    <ul>
+                        <li><i class="fas fa-wifi"></i> Wi-Fi Gratuito</li>
+                        <li><i class="fas fa-tv"></i> TV LED 42"</li>
+                        <li><i class="fas fa-snowflake"></i> Ar Condicionado</li>
+                    </ul>
+                    <button class="btn btn-secondary">Ver Detalhes</button>
+                </div>
+                <div class="room-card">
+                    <i class="fas fa-star"></i>
+                    <h3>Suíte Luxo</h3>
+                    <p>Experiência premium com vista panorâmica</p>
+                    <ul>
+                        <li><i class="fas fa-bath"></i> Banheira de Hidromassagem</li>
+                        <li><i class="fas fa-coffee"></i> Café da Manhã no Quarto</li>
+                        <li><i class="fas fa-concierge-bell"></i> Serviço de Quarto 24h</li>
+                    </ul>
+                    <button class="btn btn-secondary">Ver Detalhes</button>
+                </div>
+                <div class="room-card">
+                    <i class="fas fa-crown"></i>
+                    <h3>Suíte Presidencial</h3>
+                    <p>O máximo em luxo e exclusividade</p>
+                    <ul>
+                        <li><i class="fas fa-swimming-pool"></i> Piscina Privativa</li>
+                        <li><i class="fas fa-utensils"></i> Chef Particular</li>
+                        <li><i class="fas fa-car"></i> Transporte Executivo</li>
+                    </ul>
+                    <button class="btn btn-secondary">Ver Detalhes</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="services-section">
+            <h2>Nossos Serviços</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <i class="fas fa-utensils"></i>
+                    <h3>Restaurante</h3>
+                    <p>Gastronomia internacional com sabores locais</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-spa"></i>
+                    <h3>Spa & Bem-estar</h3>
+                    <p>Relaxe com nossos tratamentos exclusivos</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-dumbbell"></i>
+                    <h3>Academia</h3>
+                    <p>Equipamentos modernos e personal trainers</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-swimming-pool"></i>
+                    <h3>Piscina</h3>
+                    <p>Piscina infinity com vista para a cidade</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="about-section">
+            <div class="about-content">
+                <h2>Sobre o HotelManager</h2>
+                <p>Localizado no coração de Angola, o HotelManager é sinônimo de hospitalidade de luxo. Com uma combinação perfeita de conforto moderno e charme tradicional, oferecemos uma experiência única para nossos hóspedes.</p>
+            </div>
+        </section>
+
+        <section id="contact" class="contact-section">
+            <h2>Faça Sua Reserva</h2>
+            <div class="contact-form">
+                <form>
+                    <div class="form-group">
+                        <input type="text" placeholder="Nome Completo" required>
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="date" placeholder="Data de Check-in" required>
+                        <input type="date" placeholder="Data de Check-out" required>
+                    </div>
+                    <div class="form-group">
+                        <select required>
+                            <option value="">Selecione o Tipo de Quarto</option>
+                            <option value="standard">Quarto Standard</option>
+                            <option value="luxo">Suíte Luxo</option>
+                            <option value="presidencial">Suíte Presidencial</option>
+                        </select>
+                        <input type="number" placeholder="Número de Hóspedes" min="1" required>
+                    </div>
+                    <textarea placeholder="Requisitos Especiais" rows="4"></textarea>
+                    <button type="submit" class="btn btn-primary">Solicitar Reserva</button>
+                </form>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>HotelManager</h3>
+                <p>Luxo e conforto no coração de Angola</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Links Rápidos</h4>
+                <ul>
+                    <li><a href="#rooms">Quartos</a></li>
+                    <li><a href="#services">Serviços</a></li>
+                    <li><a href="#about">Sobre</a></li>
+                    <li><a href="#contact">Reservas</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contacte-nos</h4>
+                <p><i class="fas fa-phone"></i> +244 923 456 789</p>
+                <p><i class="fas fa-envelope"></i> reservas@hotelmanager.co.ao</p>
+                <p><i class="fas fa-map-marker-alt"></i> Luanda, Angola</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 HotelManager. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+    <script src="../js/router.js"></script>
+    <script src="../js/landing-page.js"></script>
+</body>
+</html>

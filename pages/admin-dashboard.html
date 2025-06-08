@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:;">
+    <title>HotelManager - Painel Administrativo</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Admin Panel</h1>
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userEmail"></span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active">
+                        <a href="#" data-section="visao-geral">
+                            <i class="fas fa-chart-line"></i>
+                            Visão Geral
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="gestao-usuarios">
+                            <i class="fas fa-users"></i>
+                            Gestão de Usuários
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="configuracoes">
+                            <i class="fas fa-cog"></i>
+                            Configurações do Sistema
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="seguranca">
+                            <i class="fas fa-shield-alt"></i>
+                            Segurança
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="logs">
+                            <i class="fas fa-list"></i>
+                            Logs do Sistema
+                        </a>
+                    </li>
+                    <li class="logout">
+                        <a href="#" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sair
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h2>Painel Administrativo</h2>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <input type="text" placeholder="Pesquisar no sistema...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="settings">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Cards -->
+            <div class="dashboard-cards">
+                <div class="card">
+                    <div class="card-icon users">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Total de Usuários</h3>
+                        <p class="number">1,234</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon security">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Nível de Segurança</h3>
+                        <p>Alto</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon system">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Status do Sistema</h3>
+                        <p>Operacional</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon uptime">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Uptime</h3>
+                        <p>99.9%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="dashboard-charts">
+                <div class="chart-container">
+                    <h3>Atividade do Sistema</h3>
+                    <div class="chart" id="systemActivityChart">
+                        <!-- Chart will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Distribuição de Usuários</h3>
+                    <div class="chart" id="userDistributionChart">
+                        <!-- Chart will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="recent-activities">
+                <h3>Atividades Recentes</h3>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-details">
+                            <p>Novo usuário registrado</p>
+                            <span>Há 5 minutos</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="activity-details">
+                            <p>Atualização de segurança aplicada</p>
+                            <span>Há 1 hora</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="activity-details">
+                            <p>Tentativa de acesso não autorizado</p>
+                            <span>Há 2 horas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript -->
+    <script type="text/javascript" src="../js/auth.js"></script>
+    <script type="text/javascript" src="../js/router.js"></script>
+    <script type="text/javascript" src="../js/admin-dashboard.js"></script>
+</body>
+</html> 

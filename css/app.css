@@ -1,0 +1,26 @@
+/* Estilo para a mensagem de redirecionamento */
+body {
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f3f4f6;
+    color: #1f2937;
+}
+
+.redirect-message {
+    text-align: center;
+    padding: 2rem;
+}
+
+.redirect-message a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.redirect-message a:hover {
+    text-decoration: underline;
+}

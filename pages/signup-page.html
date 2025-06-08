@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotelManager - Registro</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/signup.css">
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-card">
+            <div class="signup-header">
+                <a href="#" class="logo" data-route="landing">
+                    <h1>HotelManager</h1>
+                </a>
+                <p>Crie sua conta</p>
+            </div>
+
+            <form id="signupForm" class="signup-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">Nome</label>
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="firstName" name="firstName" required 
+                                   placeholder="Seu nome">
+                        </div>
+                        <span class="error-message" id="firstNameError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastName">Sobrenome</label>
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="lastName" name="lastName" required 
+                                   placeholder="Seu sobrenome">
+                        </div>
+                        <span class="error-message" id="lastNameError"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" name="email" required 
+                               placeholder="Seu email">
+                    </div>
+                    <span class="error-message" id="emailError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Telefone</label>
+                    <div class="input-group">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" id="phone" name="phone" required 
+                               placeholder="Seu telefone">
+                    </div>
+                    <span class="error-message" id="phoneError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="document">Documento de Identificação</label>
+                    <div class="input-group">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="document" name="document" required 
+                               placeholder="Seu documento de identificação">
+                    </div>
+                    <span class="error-message" id="documentError"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password" required 
+                                   placeholder="Sua senha">
+                            <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                        </div>
+                        <span class="error-message" id="passwordError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar Senha</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required 
+                                   placeholder="Confirme sua senha">
+                            <i class="fas fa-eye toggle-password" id="toggleConfirmPassword"></i>
+                        </div>
+                        <span class="error-message" id="confirmPasswordError"></span>
+                    </div>
+                </div>
+
+                <div class="password-requirements">
+                    <p>A senha deve conter:</p>
+                    <ul>
+                        <li id="lengthCheck"><i class="fas fa-circle"></i> Mínimo de 8 caracteres</li>
+                        <li id="upperCheck"><i class="fas fa-circle"></i> Uma letra maiúscula</li>
+                        <li id="lowerCheck"><i class="fas fa-circle"></i> Uma letra minúscula</li>
+                        <li id="numberCheck"><i class="fas fa-circle"></i> Um número</li>
+                        <li id="specialCheck"><i class="fas fa-circle"></i> Um caractere especial</li>
+                    </ul>
+                </div>
+
+                <div class="form-group terms">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="termsAccept" required>
+                        <span class="checkmark"></span>
+                        <span>Eu aceito os <a href="#" class="terms-link">Termos e Condições</a></span>
+                    </label>
+                    <span class="error-message" id="termsError"></span>
+                </div>
+
+                <button type="submit" class="signup-button">
+                    <span>Criar Conta</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="signup-footer">
+                <p>Já tem uma conta? <a href="#" class="login-link" data-route="login">Entrar</a></p>
+            </div>
+        </div>
+
+        <div class="signup-image">
+            <!-- Decorative image container -->
+            <div class="image-overlay"></div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript -->
+    <script src="../js/router.js"></script>
+    <script src="../js/signup.js"></script>
+</body>
+</html>
