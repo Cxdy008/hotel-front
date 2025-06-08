@@ -54,9 +54,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Carregar dados do usuário do token
     loadUserDataFromToken();
 
-    // Carregar dados iniciais
-    await loadReservations();
-    setupDateConstraints();
+    // Carregar dados da página inicial (Minhas Reservas)
+    loadPageData('my-reservations');
+
+    // Adicionar listeners para os campos de data
+    if (checkInDate) {
+        checkInDate.addEventListener('change', validateDates);
+    }
+    if (checkOutDate) {
+        checkOutDate.addEventListener('change', validateDates);
+    }
 });
 
 // Event Listeners
@@ -210,49 +217,92 @@ function checkFormValidity() {
 
 // Função para configurar as restrições de data
 function setupDateConstraints() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Formatar as datas para o formato YYYY-MM-DD
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    // Configurar data mínima para check-in
     if (checkInDate) {
-        checkInDate.min = today;
+        checkInDate.min = todayStr;
+        checkInDate.addEventListener('change', () => {
+            if (checkOutDate) {
+                // Configurar data mínima para check-out baseado no check-in
+                const selectedCheckIn = new Date(checkInDate.value);
+                const minCheckOut = new Date(selectedCheckIn);
+                minCheckOut.setDate(minCheckOut.getDate() + 1);
+                checkOutDate.min = minCheckOut.toISOString().split('T')[0];
+
+                // Se a data de check-out for anterior ou igual à nova data mínima, limpar o campo
+                if (checkOutDate.value && new Date(checkOutDate.value) <= selectedCheckIn) {
+                    checkOutDate.value = '';
+                    showToast('A data de check-out deve ser posterior à data de check-in', 'error');
+                }
+            }
+        });
     }
+
+    // Configurar data mínima inicial para check-out
     if (checkOutDate) {
-        checkOutDate.min = today;
+        checkOutDate.min = tomorrowStr;
     }
 }
 
-// Atualizar a função de busca
+// Função para validar as datas
+function validateDates() {
+    if (!checkInDate || !checkOutDate) return false;
+
+    const start = new Date(checkInDate.value);
+    const end = new Date(checkOutDate.value);
+
+    if (end <= start) {
+        showToast('A data de check-out deve ser posterior à data de check-in', 'error');
+        checkOutDate.value = '';
+        return false;
+    }
+
+    return true;
+}
+
+// Atualizar a função de busca de quartos
 async function searchAvailableRooms() {
+    if (!checkInDate.value || !checkOutDate.value) {
+        showToast('Por favor, selecione as datas de check-in e check-out', 'error');
+        return;
+    }
+
+    if (!validateDates()) {
+        return;
+    }
+
     selectedRoomNumber = null;
     submitContainer.style.display = 'none';
     submitButton.disabled = true;
     
     const roomsList = document.querySelector('.available-rooms');
+    const roomType = roomTypeFilter.value;
+
+    if (roomType === 'all') {
+        showToast('Por favor, selecione um tipo de quarto', 'error');
+        return;
+    }
     
     try {
         const token = getAuthToken();
         if (!token) return;
 
-        const roomType = roomTypeFilter.value;
-        if (roomType === 'all') {
-            showToast('Por favor, selecione um tipo de quarto', 'error');
-            return;
-        }
-
         // Mostrar estado de carregamento
-        roomsList.innerHTML = '<p class="loading-message">Buscando quartos...</p>';
-
-        console.log('Fazendo requisição para:', `${API_BASE_URL}/api/rooms/type/${roomType}`);
-        const headers = getAuthHeaders();
-        console.log('Headers:', headers);
+        roomsList.innerHTML = '<div class="loading-message"><i class="fas fa-spinner fa-spin"></i><p>Buscando quartos...</p></div>';
 
         const response = await fetch(`${API_BASE_URL}/api/rooms/type/${roomType}`, {
             method: 'GET',
-            headers: headers
+            headers: getAuthHeaders()
         });
 
-        console.log('Status da resposta:', response.status);
-        
         if (response.status === 401) {
-            // Token expirado ou inválido
             localStorage.removeItem('authToken');
             window.location.href = '/pages/login-page.html';
             return;
@@ -260,21 +310,18 @@ async function searchAvailableRooms() {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Resposta da API:', errorText);
-            throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            throw new Error(errorText || 'Erro ao buscar quartos');
         }
 
         const rooms = await response.json();
-        console.log('Quartos recebidos:', rooms);
-
+        
         if (!Array.isArray(rooms)) {
-            console.error('Resposta não é um array:', rooms);
             throw new Error('Formato de resposta inválido');
         }
 
         updateAvailableRoomsList(rooms);
     } catch (error) {
-        console.error('Erro completo:', error);
+        console.error('Erro ao buscar quartos:', error);
         roomsList.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
@@ -282,7 +329,7 @@ async function searchAvailableRooms() {
                 <small>${error.message}</small>
             </div>
         `;
-        showToast('Erro ao buscar quartos. Verifique o console para mais detalhes.', 'error');
+        showToast('Erro ao buscar quartos', 'error');
     }
 }
 
@@ -319,7 +366,8 @@ function updateAvailableRoomsList(rooms) {
     `).join('');
 
     // Adicionar listeners para seleção de quarto
-    roomsList.querySelectorAll('.room-card.disposed').forEach(card => {
+    const disposedRooms = roomsList.querySelectorAll('.room-card.disposed');
+    disposedRooms.forEach(card => {
         const checkbox = card.querySelector('.select-room');
         if (checkbox) {
             checkbox.addEventListener('change', () => handleRoomSelection(card));
@@ -358,11 +406,12 @@ async function createReservation() {
         return;
     }
 
-    const checkIn = document.getElementById('checkInDate').value;
-    const checkOut = document.getElementById('checkOutDate').value;
-
-    if (!checkIn || !checkOut) {
+    if (!checkInDate.value || !checkOutDate.value) {
         showToast('Por favor, selecione as datas de check-in e check-out', 'error');
+        return;
+    }
+
+    if (!validateDates()) {
         return;
     }
 
@@ -375,8 +424,8 @@ async function createReservation() {
             headers: getAuthHeaders(),
             body: JSON.stringify({
                 roomNumber: parseInt(selectedRoomNumber),
-                checkIn,
-                checkOut
+                checkIn: checkInDate.value,
+                checkOut: checkOutDate.value
             })
         });
 
@@ -484,21 +533,6 @@ async function updatePassword(form) {
 }
 
 // Funções utilitárias
-function validateDates() {
-    if (!checkInDate || !checkOutDate) return false;
-
-    const start = new Date(checkInDate.value);
-    const end = new Date(checkOutDate.value);
-
-    if (end <= start) {
-        showToast('A data de check-out deve ser posterior à data de check-in', 'error');
-        checkOutDate.value = '';
-        return false;
-    }
-
-    return true;
-}
-
 function getStatusText(status) {
     const statusMap = {
         'DISPOSED': 'Disponível',
@@ -548,6 +582,58 @@ function loadUserDataFromToken() {
         console.error('Erro ao carregar dados do usuário:', error);
         guestEmail.textContent = 'Email não disponível';
         guestName.textContent = 'Usuário';
+    }
+}
+
+// Função para carregar dados específicos de cada página
+function loadPageData(pageName) {
+    switch (pageName) {
+        case 'my-reservations':
+            loadReservations();
+            break;
+        case 'new-reservation':
+            // Resetar formulário
+            if (checkInDate) checkInDate.value = '';
+            if (checkOutDate) checkOutDate.value = '';
+            if (roomTypeFilter) roomTypeFilter.value = 'all';
+            
+            // Limpar lista de quartos e esconder botão de confirmação
+            const roomsList = document.querySelector('.available-rooms');
+            if (roomsList) {
+                roomsList.innerHTML = '';
+            }
+            if (submitContainer) {
+                submitContainer.style.display = 'none';
+            }
+            
+            // Configurar restrições de data
+            setupDateConstraints();
+            break;
+        case 'profile':
+            loadUserProfile();
+            break;
+    }
+}
+
+// Função para carregar dados do perfil do usuário
+async function loadUserProfile() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/guests/profile`, {
+            headers: getAuthHeaders()
+        });
+
+        if (response.ok) {
+            const profileData = await response.json();
+            // Preencher formulário com dados do perfil
+            document.getElementById('fullName').value = profileData.name || '';
+            document.getElementById('email').value = profileData.email || '';
+            document.getElementById('document').value = profileData.document || '';
+            document.getElementById('phone').value = profileData.phone || '';
+            document.getElementById('address').value = profileData.address || '';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+        showToast('Erro ao carregar dados do perfil', 'error');
     }
 }
 
