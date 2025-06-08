@@ -284,11 +284,6 @@ async function searchAvailableRooms() {
     
     const roomsList = document.querySelector('.available-rooms');
     const roomType = roomTypeFilter.value;
-
-    if (roomType === 'all') {
-        showToast('Por favor, selecione um tipo de quarto', 'error');
-        return;
-    }
     
     try {
         const token = getAuthToken();
@@ -297,7 +292,12 @@ async function searchAvailableRooms() {
         // Mostrar estado de carregamento
         roomsList.innerHTML = '<div class="loading-message"><i class="fas fa-spinner fa-spin"></i><p>Buscando quartos...</p></div>';
 
-        const response = await fetch(`${API_BASE_URL}/api/rooms/type/${roomType}`, {
+        // Definir o endpoint baseado na seleção do tipo de quarto
+        const endpoint = roomType === 'all' 
+            ? `${API_BASE_URL}/api/rooms/available`
+            : `${API_BASE_URL}/api/rooms/type/${roomType}`;
+
+        const response = await fetch(endpoint, {
             method: 'GET',
             headers: getAuthHeaders()
         });
@@ -317,6 +317,16 @@ async function searchAvailableRooms() {
         
         if (!Array.isArray(rooms)) {
             throw new Error('Formato de resposta inválido');
+        }
+
+        if (rooms.length === 0) {
+            roomsList.innerHTML = `
+                <div class="no-rooms-message">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Nenhum quarto ${roomType === 'all' ? 'disponível' : `do tipo ${roomType} disponível`} para as datas selecionadas.</p>
+                </div>
+            `;
+            return;
         }
 
         updateAvailableRoomsList(rooms);
